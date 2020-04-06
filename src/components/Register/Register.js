@@ -22,7 +22,12 @@ class Register extends React.Component {
     this.setState({password: event.target.value})
   }
 
+  saveAuthToken = (token) => {
+    window.sessionStorage.setItem('token', token);
+  }
+
   onSubmitSignIn = () => {
+    // this.saveAuthToken(data.token);
     fetch('http://localhost:3000/register', {
       method: 'post',
       headers: {'Content-Type': 'application/json'},
@@ -35,8 +40,18 @@ class Register extends React.Component {
       .then(response => response.json())
       .then(user => {
         if (user.id) {
-          this.props.loadUser(user)
-          this.props.onRouteChange('home');
+          this.saveAuthToken(user.token)
+          fetch(`http://localhost:3000/profile/${user.id}`, {
+            method: 'get',
+            headers: {'Content-Type': 'application/json', 'Authorization': user.token}
+          })
+          .then(resp => resp.json())
+          .then(data => {
+            if(data) {
+              this.props.loadUser(data);
+              this.props.onRouteChange('home');
+            }
+          })
         }
       })
   }
